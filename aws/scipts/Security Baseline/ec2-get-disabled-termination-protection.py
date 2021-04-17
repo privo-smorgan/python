@@ -8,11 +8,11 @@ import json
 ec2 = boto3.resource('ec2')
 client = boto3.client('ec2')
 
-# Get instances using filters
+# Get instances using filters for running 
 instances = ec2.instances.filter(
     Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
 
-# Print instance Ids
+# Print instance information for EC2s with termination protection disabled
 for instance in instances:
     response = client.describe_instance_attribute(
     Attribute='disableApiTermination',
