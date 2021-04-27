@@ -55,7 +55,7 @@ for ncr in noncompliant_rules:
     response2 = client.get_compliance_details_by_config_rule(
         ConfigRuleName = ncr
     )
-    # TODO: Get 
+    # TODO: Get ConfigRuleName, ResourceId, and ResourceType for each non-compliant rule 
     print(json.dumps(response2, sort_keys=True, indent=4, default=str))
 
 
