@@ -18,9 +18,9 @@ for instance in instances:
     Attribute='disableApiTermination',
     InstanceId=instance.id,
     )
-    jsonvar = json.loads(json.dumps(response))
-    for key in jsonvar:
+    
+    for key in response:
         if key == 'DisableApiTermination':
-            if (jsonvar[key]['Value'] == False):
+            if (response[key]['Value'] == False):
                 print(json.dumps(response, sort_keys=True, indent=4))
 
