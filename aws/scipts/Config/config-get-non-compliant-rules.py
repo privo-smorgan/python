@@ -50,13 +50,17 @@ for rule in rules:
 #for ncrule in noncompliant_rules:
     #print(ncrule)
 #print(len(noncompliant_rules))
-
+print('ConfigRuleName, ResourceId, ResourceType')
 for ncr in noncompliant_rules:
     response2 = client.get_compliance_details_by_config_rule(
         ConfigRuleName = ncr
     )
-    # TODO: Get ConfigRuleName, ResourceId, and ResourceType for each non-compliant rule 
-    print(json.dumps(response2, sort_keys=True, indent=4, default=str))
-
-
+    # TODO: Get ConfigRuleName, ResourceId, and ResourceType for each non-compliant rule
+    # TODO: Validate data
+    for key2 in response2['EvaluationResults']:
+        print(key2['EvaluationResultIdentifier']['EvaluationResultQualifier']['ConfigRuleName']+','+
+        key2['EvaluationResultIdentifier']['EvaluationResultQualifier']['ResourceId']+','+
+        key2['EvaluationResultIdentifier']['EvaluationResultQualifier']['ResourceType']
+        )
+# TODO: Generate a CSV from above
 # Create CSV output each
