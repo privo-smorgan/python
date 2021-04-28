@@ -20,6 +20,19 @@ done
 '''
 import boto3
 import json
+import os
+from datetime import date
+import csv
+
+# Create output file
+today = date.today()
+date_var = today.strftime("%b-%d-%Y")
+output_file = 'output-non_compliant_rules-'+ date_var +'.csv'
+if os.path.isfile(output_file):
+    print('Output file exists!')
+else:
+    f = open(output_file, "w")
+    f.close()
 
 client = boto3.client('config')
 
@@ -47,20 +60,18 @@ for rule in rules:
             #print(key['EvaluationResultIdentifier']['EvaluationResultQualifier']['ConfigRuleName'])
             if key1['EvaluationResultIdentifier']['EvaluationResultQualifier']['ConfigRuleName'] not in noncompliant_rules:
                 noncompliant_rules.append(key1['EvaluationResultIdentifier']['EvaluationResultQualifier']['ConfigRuleName'])
-#for ncrule in noncompliant_rules:
-    #print(ncrule)
-#print(len(noncompliant_rules))
-print('ConfigRuleName, ResourceId, ResourceType')
-for ncr in noncompliant_rules:
-    response2 = client.get_compliance_details_by_config_rule(
-        ConfigRuleName = ncr
-    )
-    # TODO: Get ConfigRuleName, ResourceId, and ResourceType for each non-compliant rule
-    # TODO: Validate data
-    for key2 in response2['EvaluationResults']:
-        print(key2['EvaluationResultIdentifier']['EvaluationResultQualifier']['ConfigRuleName']+','+
-        key2['EvaluationResultIdentifier']['EvaluationResultQualifier']['ResourceId']+','+
-        key2['EvaluationResultIdentifier']['EvaluationResultQualifier']['ResourceType']
+
+# Write data to CSV file
+with open(output_file, 'w', newline='') as csvfile:
+    filewriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    filewriter.writerow(['ConfigRuleName', 'ResourceId', 'ResourceType'])
+    for ncr in noncompliant_rules:
+        response2 = client.get_compliance_details_by_config_rule(
+            ConfigRuleName = ncr
         )
-# TODO: Generate a CSV from above
-# Create CSV output each
+        # TODO: Validate data - Should be over 60 rows 
+        for key2 in response2['EvaluationResults']:
+            filewriter.writerow([key2['EvaluationResultIdentifier']['EvaluationResultQualifier']['ConfigRuleName'],
+            key2['EvaluationResultIdentifier']['EvaluationResultQualifier']['ResourceId'],
+            key2['EvaluationResultIdentifier']['EvaluationResultQualifier']['ResourceType']]
+            )
