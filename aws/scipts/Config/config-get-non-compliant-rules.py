@@ -36,7 +36,7 @@ else:
 
 client = boto3.client('config')
 
-# Get AWS Config rule details 
+# Get AWS Config rule details
 rules = []
 response = client.describe_config_rules()
 paginator = client.get_paginator('describe_config_rules')
@@ -49,29 +49,22 @@ for page in response_iterator:
     for key in page['ConfigRules']:
         rules.append(key['ConfigRuleName'])
 
-# Get rules with non-compliant resources
-noncompliant_rules = []
-for rule in rules:
-    response1 = client.get_compliance_details_by_config_rule(
-        ConfigRuleName = rule
-    )
-    for key1 in response1['EvaluationResults']:
-        if key1['ComplianceType'] == 'NON_COMPLIANT':
-            #print(key['EvaluationResultIdentifier']['EvaluationResultQualifier']['ConfigRuleName'])
-            if key1['EvaluationResultIdentifier']['EvaluationResultQualifier']['ConfigRuleName'] not in noncompliant_rules:
-                noncompliant_rules.append(key1['EvaluationResultIdentifier']['EvaluationResultQualifier']['ConfigRuleName'])
-
-# Write data to CSV file
+# Get rules with non-compliant resources andwrite data to CSV file
 with open(output_file, 'w', newline='') as csvfile:
     filewriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     filewriter.writerow(['ConfigRuleName', 'ResourceId', 'ResourceType'])
-    for ncr in noncompliant_rules:
-        response2 = client.get_compliance_details_by_config_rule(
-            ConfigRuleName = ncr
+    paginator1 = client.get_paginator('get_compliance_details_by_config_rule')
+    for rule in rules:
+        response1 = paginator1.paginate(
+            ConfigRuleName = rule,
+            ComplianceTypes = ['NON_COMPLIANT'],
+            PaginationConfig={
+                'MaxItems' : 200
+            }
         )
-        # TODO: Validate data - Should be over 60 rows 
-        for key2 in response2['EvaluationResults']:
-            filewriter.writerow([key2['EvaluationResultIdentifier']['EvaluationResultQualifier']['ConfigRuleName'],
-            key2['EvaluationResultIdentifier']['EvaluationResultQualifier']['ResourceId'],
-            key2['EvaluationResultIdentifier']['EvaluationResultQualifier']['ResourceType']]
-            )
+        for page1 in response1:
+            for key1 in page1['EvaluationResults']:
+                filewriter.writerow([key1['EvaluationResultIdentifier']['EvaluationResultQualifier']['ConfigRuleName'],
+                key1['EvaluationResultIdentifier']['EvaluationResultQualifier']['ResourceId'],
+                key1['EvaluationResultIdentifier']['EvaluationResultQualifier']['ResourceType']]
+                )
